@@ -51,19 +51,16 @@ class OddsAPIClient:
         
         if params is None:
             params = {}
-        
-        # Add API key to params
         params['apiKey'] = self.api_key
         
         try:
             response = self.session.get(url, params=params, timeout=self.timeout)
             response.raise_for_status()
             
-            # Check usage quota from headers
             if 'x-requests-remaining' in response.headers:
                 remaining = response.headers.get('x-requests-remaining', 'N/A')
                 used = response.headers.get('x-requests-used', 'N/A')
-                print(f"📊 API Usage - Remaining: {remaining}, Used: {used}")
+                print(f"API Usage - Remaining: {remaining}, Used: {used}")
             
             return response.json()
         except requests.exceptions.HTTPError as e:
@@ -89,7 +86,7 @@ class OddsAPIClient:
             List of sports with their keys and details
         """
         url = f"{self.BASE_URL}/sports"
-        params = {'apiKey': self.api_key}  # apiKey param is recommended but not strictly required
+        params = {'apiKey': self.api_key} 
         if all_sports:
             params['all'] = 'true'
         
@@ -145,13 +142,41 @@ class OddsAPIClient:
         
         return self._make_request(endpoint, params)
     
+    def get_event_odds(self, sport: str, event_id: str, regions: str = "us", 
+                      markets: str = "player_points", odds_format: str = "decimal", 
+                      date_format: str = "iso") -> Dict[str, Any]:
+        """
+        Get odds for a single event (including player props).
+        
+        Args:
+            sport: Sport key (e.g., 'basketball_nba', 'americanfootball_nfl')
+            event_id: The event ID from the events endpoint
+            regions: Comma-separated list of regions (default: 'us')
+            markets: Comma-separated list of markets (default: 'player_points')
+                     For NBA player props: 'player_points', 'player_assists', 'player_rebounds', 'player_threes', etc.
+            odds_format: Format for odds - 'american' or 'decimal' (default: 'decimal')
+            date_format: Date format - 'iso' or 'unix' (default: 'iso')
+            
+        Returns:
+            Single event with odds
+        """
+        endpoint = f"/sports/{sport}/events/{event_id}/odds"
+        params = {
+            'regions': regions,
+            'markets': markets,
+            'oddsFormat': odds_format,
+            'dateFormat': date_format
+        }
+        
+        return self._make_request(endpoint, params)
+    
     def get_player_props(self, sport: str, regions: str = "us", odds_format: str = "decimal") -> List[Dict[str, Any]]:
         """
-        Get player props for a specific sport.
+        Get player props for a specific sport by fetching events first, then odds for each event.
         
-        Note: The Odds API v4 may not support 'player_props' as a market type.
-        This function attempts to fetch player props, but will return an empty list
-        if not available. Player props may require a premium API plan or different endpoint.
+        This uses the correct approach per Odds API documentation:
+        1. Get list of events for today
+        2. For each event, fetch player props using event-specific endpoint
         
         Args:
             sport: Sport key (e.g., 'basketball_nba', 'americanfootball_nfl')
@@ -159,38 +184,64 @@ class OddsAPIClient:
             odds_format: Format for odds - 'american' or 'decimal' (default: 'decimal')
             
         Returns:
-            List of events with player props, or empty list if not available
+            List of events with player props
             
         Raises:
-            Exception: If API returns an error (may indicate player props not available)
+            Exception: If API returns an error
         """
-        # Try different market names that might contain player props
-        possible_markets = [
-            "player_props",
-            "player_points",
-            "player_assists", 
-            "player_rebounds",
-            "props"
-        ]
+        # Get today's events first
+        events = self.get_events(sport)
         
-        for market in possible_markets:
+        if not events:
+            return []
+        
+        # Filter to today's events only
+        today = datetime.now().date()
+        today_events = []
+        for event in events:
+            commence_time = event.get('commence_time', '')
+            if commence_time:
+                try:
+                    event_date = datetime.fromisoformat(commence_time.replace('Z', '+00:00')).date()
+                    if event_date == today:
+                        today_events.append(event)
+                except:
+                    continue
+        
+        if not today_events:
+            return []
+        
+        # NBA player prop markets
+        player_prop_markets = "player_points,player_assists,player_rebounds,player_threes,player_steals,player_blocks"
+        
+        # Fetch player props for each event
+        events_with_props = []
+        for event in today_events:
+            event_id = event.get('id')
+            if not event_id:
+                continue
+            
             try:
-                result = self.get_odds(sport=sport, regions=regions, markets=market, odds_format=odds_format)
-                if result:
-                    return result
+                event_odds = self.get_event_odds(
+                    sport=sport,
+                    event_id=event_id,
+                    regions=regions,
+                    markets=player_prop_markets,
+                    odds_format=odds_format
+                )
+                
+                # Merge event info with odds
+                event_with_odds = {
+                    **event,
+                    'bookmakers': event_odds.get('bookmakers', [])
+                }
+                events_with_props.append(event_with_odds)
+                
             except Exception as e:
-                # If it's not an invalid market error, re-raise it
-                if "INVALID_MARKET" not in str(e) and "422" not in str(e):
-                    raise
+                # Skip events that don't have player props available
                 continue
         
-        # If none of the markets work, return empty list with helpful message
-        raise ValueError(
-            f"Player props are not available for {sport}. "
-            f"The Odds API v4 may not support player props, or they may require a premium subscription. "
-            f"Available markets are typically: 'h2h', 'spreads', 'totals', 'outrights'. "
-            f"Please check The Odds API documentation or your subscription plan."
-        )
+        return events_with_props
 
 
 def scrape_odds_data(api_key: str, sport: str = "basketball_nba", regions: str = "us", 
@@ -216,7 +267,6 @@ def scrape_odds_data(api_key: str, sport: str = "basketball_nba", regions: str =
     print(f"Fetching odds for sport: {sport}")
     print(f"Regions: {regions}, Markets: {markets}, Odds Format: {odds_format}")
     
-    # Fetch odds data
     try:
         odds_data = client.get_odds(sport=sport, regions=regions, markets=markets, odds_format=odds_format)
         
@@ -226,9 +276,7 @@ def scrape_odds_data(api_key: str, sport: str = "basketball_nba", regions: str =
             with open(save_raw, 'w') as f:
                 json.dump(odds_data, f, indent=2)
             print(f"Raw JSON saved to {save_raw}")
-        
-        # Parse and flatten the data
-        # v4 API returns a direct list of events
+
         records = []
         events = odds_data if isinstance(odds_data, list) else []
         
@@ -240,7 +288,6 @@ def scrape_odds_data(api_key: str, sport: str = "basketball_nba", regions: str =
             away_team = event.get('away_team', '')
             commence_time = event.get('commence_time', '')
             
-            # Extract bookmakers and their odds
             bookmakers = event.get('bookmakers', [])
             
             for bookmaker in bookmakers:
@@ -281,27 +328,24 @@ def scrape_odds_data(api_key: str, sport: str = "basketball_nba", regions: str =
                         }
                         records.append(record)
         
-        # Create DataFrame
         if records:
             df = pd.DataFrame(records)
-            
-            # Save to CSV
             os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else '.', exist_ok=True)
             df.to_csv(output_file, index=False)
             
-            print(f"\n✅ Successfully scraped {len(records)} odds records")
-            print(f"📊 Events found: {len(events)}")
-            print(f"💾 Data saved to {output_file}")
+            print(f"\n Successfully scraped {len(records)} odds records")
+            print(f" Events found: {len(events)}")
+            print(f" Data saved to {output_file}")
             print(f"\nSample data:")
             print(df.head(10).to_string(index=False))
             
             return df
         else:
-            print("❌ No odds data found")
+            print("No odds data found")
             return pd.DataFrame()
             
     except Exception as e:
-        print(f"❌ Error fetching odds: {e}")
+        print(f"Error fetching odds: {e}")
         raise
 
 
@@ -322,31 +366,28 @@ def list_available_sports(api_key: Optional[str] = None, all_sports: bool = Fals
             client = OddsAPIClient(api_key)
             sports = client.get_sports(all_sports=all_sports)
         else:
-            # Sports endpoint doesn't require auth, but apiKey param is still needed
             url = "https://api.the-odds-api.com/v4/sports"
             params = {}
             if all_sports:
                 params['all'] = 'true'
-            # Note: Even without auth, some endpoints may want apiKey param
             response = requests.get(url, params=params, timeout=30)
             response.raise_for_status()
             sports = response.json()
         
         df = pd.DataFrame(sports)
-        print("\n📋 Available Sports:")
+        print("\nAvailable Sports:")
         print(df.to_string(index=False))
         return df
     except Exception as e:
-        print(f"❌ Error fetching sports list: {e}")
+        print(f"Error fetching sports list: {e}")
         raise
 
 
 if __name__ == "__main__":
-    # Example usage
     api_key = os.getenv('ODDS_API_KEY')
     
     if not api_key:
-        print("⚠️  ODDS_API_KEY environment variable not set.")
+        print("ODDS_API_KEY environment variable not set.")
         print("Please set it using: export ODDS_API_KEY='your_api_key'")
         print("\nFetching available sports (no API key required)...")
         list_available_sports()

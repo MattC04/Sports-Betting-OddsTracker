@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Betting Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        
+        .prop-badge {
+            transition: all 0.2s ease;
+        }
+        
+        .prop-badge:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-basketball-ball text-3xl"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">Sports Betting Analytics</h1>
+                        <p class="text-sm opacity-90">Player Props & Line Analysis</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="searchInput"
+                            placeholder="Search players, teams..." 
+                            class="pl-10 pr-4 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 w-64"
+                        >
+                        <i class="fas fa-search absolute left-3 top-3 text-white/70"></i>
+                    </div>
+                    <button id="refreshBtn" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-6 py-4">
+            <div id="statsBar" class="grid grid-cols-2 md:grid-cols-6 gap-4">
+                <!-- Stats will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        <!-- Sport Selection & Filters -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6 fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <label class="text-sm font-semibold text-gray-700">Sport:</label>
+                    <select id="sportSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="basketball_nba">NBA</option>
+                        <option value="americanfootball_nfl">NFL</option>
+                        <option value="baseball_mlb">MLB</option>
+                        <option value="icehockey_nhl">NHL</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <label class="text-sm font-semibold text-gray-700">Date:</label>
+                    <div class="flex space-x-2">
+                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-purple-600 text-white" data-filter="today">Today</button>
+                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="tomorrow">Tomorrow</button>
+                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="week">This Week</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Games Grid -->
+        <div id="gamesContainer" class="space-y-6">
+            <!-- Loading state -->
+            <div id="loadingState" class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-purple-600 mb-4"></i>
+                <p class="text-gray-600">Loading games...</p>
+            </div>
+            
+            <!-- Games will be loaded here -->
+        </div>
+
+        <!-- No Data State -->
+        <div id="noDataState" class="hidden text-center py-12">
+            <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">No Games Found</h3>
+            <p class="text-gray-500">Try selecting a different sport or date range</p>
+        </div>
+    </div>
+
+    <!-- Game Modal -->
+    <div id="gameModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+        <div class="min-h-screen px-4 flex items-center justify-center">
+            <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+                <!-- Modal Header -->
+                <div class="gradient-bg text-white p-6 flex justify-between items-center">
+                    <div>
+                        <h2 id="modalTitle" class="text-2xl font-bold mb-1">Game Details</h2>
+                        <p id="modalSubtitle" class="text-sm opacity-90"></p>
+                    </div>
+                    <button id="closeModal" class="text-white hover:bg-white/20 rounded-full p-2 transition">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Modal Content -->
+                <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                    <div id="modalContent">
+                        <!-- Content loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE = window.location.origin;
+        let currentSport = 'basketball_nba';
+        let currentDateFilter = 'today';
+        let currentGameId = null;
+
+        // Initialize Dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadGames();
+            setupEventListeners();
+        });
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            document.getElementById('sportSelect').addEventListener('change', (e) => {
+                currentSport = e.target.value;
+                loadGames();
+            });
+
+            document.querySelectorAll('.date-filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.date-filter-btn').forEach(b => {
+                        b.classList.remove('bg-purple-600', 'text-white');
+                        b.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    e.target.classList.remove('bg-gray-200', 'text-gray-700');
+                    e.target.classList.add('bg-purple-600', 'text-white');
+                    currentDateFilter = e.target.dataset.filter;
+                    loadGames();
+                });
+            });
+
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                loadStats();
+                loadGames();
+            });
+
+            document.getElementById('closeModal').addEventListener('click', () => {
+                document.getElementById('gameModal').classList.add('hidden');
+            });
+
+            // Search functionality
+            let searchTimeout;
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                const query = e.target.value.trim();
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(() => performSearch(query), 300);
+                }
+            });
+        }
+
+        // Load Dashboard Stats
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayStats(data);
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Display Stats
+        function displayStats(stats) {
+            const statsBar = document.getElementById('statsBar');
+            statsBar.innerHTML = `
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600">${stats.today_games || 0}</div>
+                    <div class="text-xs text-gray-600">Today's Games</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">${stats.unique_players || 0}</div>
+                    <div class="text-xs text-gray-600">Players</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600">${stats.total_props || 0}</div>
+                    <div class="text-xs text-gray-600">Total Props</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-orange-600">${stats.total_games || 0}</div>
+                    <div class="text-xs text-gray-600">All Games</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-red-600">${stats.unique_bookmakers || 0}</div>
+                    <div class="text-xs text-gray-600">Bookmakers</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xs font-semibold text-gray-700">Last Update</div>
+                    <div class="text-xs text-gray-600">${stats.last_update ? new Date(stats.last_update).toLocaleTimeString() : 'N/A'}</div>
+                </div>
+            `;
+        }
+
+        // Load Games
+        async function loadGames() {
+            const container = document.getElementById('gamesContainer');
+            const loadingState = document.getElementById('loadingState');
+            const noDataState = document.getElementById('noDataState');
+            
+            loadingState.classList.remove('hidden');
+            noDataState.classList.add('hidden');
+            container.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/games?sport=${currentSport}&date=${currentDateFilter}`);
+                const data = await response.json();
+
+                loadingState.classList.add('hidden');
+
+                if (data.success && data.games.length > 0) {
+                    displayGames(data.games);
+                } else {
+                    noDataState.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading games:', error);
+                loadingState.classList.add('hidden');
+                noDataState.classList.remove('hidden');
+            }
+        }
+
+        // Display Games
+        function displayGames(games) {
+            const container = document.getElementById('gamesContainer');
+            
+            games.forEach(game => {
+                const gameCard = document.createElement('div');
+                gameCard.className = 'bg-white rounded-lg shadow-md p-6 card-hover cursor-pointer fade-in';
+                gameCard.onclick = () => openGameModal(game.event_id);
+                
+                gameCard.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <i class="fas fa-basketball-ball text-orange-500"></i>
+                                <span class="font-semibold text-lg">${game.away_team}</span>
+                                <span class="text-gray-500">@</span>
+                                <span class="font-semibold text-lg">${game.home_team}</span>
+                            </div>
+                            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                <span><i class="far fa-clock mr-1"></i>${game.commence_time_formatted}</span>
+                                <span><i class="fas fa-users mr-1"></i>${game.player_count} Players</span>
+                                <span><i class="fas fa-store mr-1"></i>${game.bookmaker_count} Bookmakers</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <button class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition duration-200">
+                                View Props <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(gameCard);
+            });
+        }
+
+        // Open Game Modal
+        async function openGameModal(eventId) {
+            const modal = document.getElementById('gameModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modal.classList.remove('hidden');
+            modalContent.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-purple-600"></i></div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/game/${eventId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayGameDetails(data);
+                }
+            } catch (error) {
+                console.error('Error loading game details:', error);
+                modalContent.innerHTML = '<div class="text-center py-8 text-red-600"><i class="fas fa-exclamation-circle text-3xl mb-2"></i><p>Error loading game details</p></div>';
+            }
+        }
+
+        // Display Game Details
+        function displayGameDetails(data) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalSubtitle = document.getElementById('modalSubtitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalTitle.textContent = `${data.game.away_team} @ ${data.game.home_team}`;
+            modalSubtitle.textContent = `${data.player_count} Players • ${data.bookmakers.length} Bookmakers • ${data.total_props} Props`;
+            
+            // Group players by team (simplified - you can enhance this)
+            let playersHTML = '<div class="space-y-4">';
+            
+            data.players.forEach(player => {
+                // Get unique prop types for this player
+                const propTypes = [...new Set(player.props.map(p => p.prop_type))];
+                
+                playersHTML += `
+                    <div class="border rounded-lg p-4 hover:border-purple-500 transition">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg font-semibold text-gray-800">
+                                <i class="fas fa-user-circle text-purple-600 mr-2"></i>${player.name}
+                            </h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${propTypes.map(type => `
+                                    <span class="prop-badge bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
+                                        ${formatPropType(type)}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            ${getPlayerPropsSummary(player.props)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            playersHTML += '</div>';
+            modalContent.innerHTML = playersHTML;
+        }
+
+        // Get Player Props Summary
+        function getPlayerPropsSummary(props) {
+            // Group by prop type and line
+            const grouped = {};
+            
+            props.forEach(prop => {
+                const key = `${prop.prop_type}_${prop.outcome_point}`;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        prop_type: prop.prop_type,
+                        line: prop.outcome_point,
+                        bookmakers: []
+                    };
+                }
+                grouped[key].bookmakers.push(prop);
+            });
+            
+            let html = '';
+            Object.values(grouped).forEach(group => {
+                const overOdds = group.bookmakers.filter(b => b.outcome_name === 'Over');
+                const underOdds = group.bookmakers.filter(b => b.outcome_name === 'Under');
+                
+                if (overOdds.length > 0 && underOdds.length > 0) {
+                    const avgOver = (overOdds.reduce((sum, b) => sum + (b.outcome_price || 0), 0) / overOdds.length).toFixed(2);
+                    const avgUnder = (underOdds.reduce((sum, b) => sum + (b.outcome_price || 0), 0) / underOdds.length).toFixed(2);
+                    
+                    html += `
+                        <div class="bg-gray-50 rounded p-3">
+                            <div class="text-xs font-semibold text-gray-600 mb-1">${formatPropType(group.prop_type)}</div>
+                            <div class="text-2xl font-bold text-gray-900 mb-1">${group.line}</div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-green-600">O: ${avgOver}</span>
+                                <span class="text-red-600">U: ${avgUnder}</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">${overOdds.length} books</div>
+                        </div>
+                    `;
+                }
+            });
+            
+            return html || '<div class="text-gray-500 text-sm">No props available</div>';
+        }
+
+        // Format Prop Type
+        function formatPropType(propType) {
+            const typeMap = {
+                'player_points': 'Points',
+                'player_assists': 'Assists',
+                'player_rebounds': 'Rebounds',
+                'player_threes': '3-Pointers',
+                'player_steals': 'Steals',
+                'player_blocks': 'Blocks'
+            };
+            return typeMap[propType] || propType.replace('player_', '').replace('_', ' ');
+        }
+
+        // Search Function
+        async function performSearch(query) {
+            try {
+                const response = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Display search results (you can enhance this with a dropdown)
+                    console.log('Search results:', data.results);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -178,11 +178,7 @@ def scrape_player_props(api_key: str, sport: str = "basketball_nba",
     db = PlayerPropsDatabase(db_path)
     
     logger.info(f"Fetching player props for sport: {sport}")
-    logger.warning(
-        "NOTE: The Odds API v4 may not support player_props market. "
-        "This feature may require a premium subscription or may not be available. "
-        "Attempting to fetch player props..."
-    )
+    logger.info("Using event-specific endpoint to fetch player props...")
     
     try:
         try:
@@ -190,7 +186,7 @@ def scrape_player_props(api_key: str, sport: str = "basketball_nba",
         except ValueError as e:
             logger.error(str(e))
             logger.info(
-                "\n💡 Alternative Solutions:\n"
+                "\n Alternative Solutions:\n"
                 "1. Player props may require a premium Odds API subscription\n"
                 "2. Consider using PrizePicks or DraftKings APIs for player props\n"
                 "3. Some sportsbooks provide player props in their regular odds feeds\n"
@@ -226,7 +222,12 @@ def scrape_player_props(api_key: str, sport: str = "basketball_nba",
                     outcomes = market.get('outcomes', [])
                     
                     for outcome in outcomes:
+                        # For player props, player name is in 'description' field
                         player_name = outcome.get('description', '') or outcome.get('name', '')
+                        
+                        # Skip if no player name (not a player prop)
+                        if not player_name or player_name in ['Over', 'Under']:
+                            continue
                         
                         prop_record = {
                             'event_id': event_id,
@@ -237,9 +238,9 @@ def scrape_player_props(api_key: str, sport: str = "basketball_nba",
                             'commence_time': commence_time,
                             'player_name': player_name,
                             'prop_type': market_key,
-                            'outcome_name': outcome.get('name', ''),
+                            'outcome_name': outcome.get('name', ''),  # 'Over' or 'Under'
                             'outcome_price': outcome.get('price'),
-                            'outcome_point': outcome.get('point'),
+                            'outcome_point': outcome.get('point'),  # The line (e.g., 23.5)
                             'bookmaker_key': bookmaker_key,
                             'bookmaker_title': bookmaker_title,
                             'last_update': market_last_update or last_update
@@ -258,3 +259,48 @@ def scrape_player_props(api_key: str, sport: str = "basketball_nba",
         logger.error(f"Error fetching player props: {e}")
         raise
 
+
+if __name__ == "__main__":
+    import sys
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    
+    # Get API key from environment
+    api_key = os.getenv('ODDS_API_KEY')
+    
+    if not api_key:
+        print("ERROR: ODDS_API_KEY environment variable not set")
+        print("Set it with: export ODDS_API_KEY='your_key_here'")
+        sys.exit(1)
+    
+    # Get sport and regions from command line or use defaults
+    sport = sys.argv[1] if len(sys.argv) > 1 else "basketball_nba"
+    regions = sys.argv[2] if len(sys.argv) > 2 else "us"
+    
+    print(f"\nFetching player props for {sport} in {regions} region(s)...")
+    
+    try:
+        props = scrape_player_props(
+            api_key=api_key,
+            sport=sport,
+            regions=regions,
+            odds_format="decimal"
+        )
+        
+        if props:
+            print(f"\nSUCCESS: Fetched {len(props)} player props")
+            print(f"Unique games: {len(set(p['event_id'] for p in props))}")
+            print(f"Unique players: {len(set(p['player_name'] for p in props))}")
+        else:
+            print("\nNo player props found. This could mean:")
+            print("  - No games scheduled today")
+            print("  - Player props not available yet (usually 2-4 hours before game)")
+            print("  - Your API plan may not include player props")
+            
+    except Exception as e:
+        print(f"\nERROR: {str(e)}")
+        sys.exit(1)
