@@ -128,9 +128,9 @@
                 <div class="flex items-center space-x-4">
                     <label class="text-sm font-semibold text-gray-700">Date:</label>
                     <div class="flex space-x-2">
-                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-purple-600 text-white" data-filter="today">Today</button>
+                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="today">Today</button>
                         <button class="date-filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="tomorrow">Tomorrow</button>
-                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="week">This Week</button>
+                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-purple-600 text-white" data-filter="week">This Week</button>
                     </div>
                 </div>
             </div>
@@ -184,7 +184,7 @@
         // API Configuration
         const API_BASE = window.location.origin;
         let currentSport = 'basketball_nba';
-        let currentDateFilter = 'today';
+        let currentDateFilter = 'week';
         let currentGameId = null;
 
         // Initialize Dashboard

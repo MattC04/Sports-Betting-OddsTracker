@@ -18,7 +18,25 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.getenv('PLAYER_PROPS_DB', os.path.join(BASE_DIR, 'data', 'player_props.db'))
+
+# Try multiple possible database locations
+possible_dbs = [
+    os.getenv('PLAYER_PROPS_DB'),  # Environment variable
+    os.path.join(BASE_DIR, 'data', 'odds_data.db'),  # Enhanced scraper v2
+    os.path.join(BASE_DIR, 'data', 'player_props.db'),  # Original scraper
+    os.path.join(BASE_DIR, 'data', 'enhanced_odds.db'),  # Alternate name
+]
+
+DB_PATH = None
+for db in possible_dbs:
+    if db and os.path.exists(db):
+        DB_PATH = db
+        logger.info(f"Found database at: {db}")
+        break
+
+if not DB_PATH:
+    DB_PATH = os.path.join(BASE_DIR, 'data', 'odds_data.db')
+    logger.warning(f"No database found, will use: {DB_PATH}")
 
 
 def get_db_connection():
@@ -82,6 +100,12 @@ def get_games():
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Check which table schema we have
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [row[0] for row in cursor.fetchall()]
+        
+        logger.info(f"Available tables: {tables}")
+        
         # Build date filter
         if date_filter == 'today':
             date_condition = "date(commence_time) = date('now')"
@@ -92,25 +116,65 @@ def get_games():
         else:
             date_condition = "date(commence_time) >= date('now')"
         
-        query = f"""
-            SELECT DISTINCT 
-                event_id,
-                sport_key,
-                sport_title,
-                home_team,
-                away_team,
-                commence_time,
-                MIN(scraped_at) as first_scraped,
-                COUNT(DISTINCT player_name) as player_count,
-                COUNT(DISTINCT bookmaker_key) as bookmaker_count
-            FROM player_props
-            WHERE {date_condition}
-            AND sport_key = ?
-            GROUP BY event_id, sport_key, sport_title, home_team, away_team, commence_time
-            ORDER BY commence_time ASC
-        """
+        # Use appropriate query based on available tables
+        if 'player_props' in tables:
+            # Check if we have the right columns
+            cursor.execute("PRAGMA table_info(player_props)")
+            columns = [row[1] for row in cursor.fetchall()]
+            
+            if 'sport_title' in columns:
+                # New schema (enhanced_scraper_v2)
+                query = f"""
+                    SELECT DISTINCT 
+                        event_id,
+                        sport_key,
+                        sport_title,
+                        home_team,
+                        away_team,
+                        commence_time,
+                        MIN(scraped_at) as first_scraped,
+                        COUNT(DISTINCT player_name) as player_count,
+                        COUNT(DISTINCT bookmaker_key) as bookmaker_count
+                    FROM player_props
+                    WHERE {date_condition}
+                    AND sport_key = ?
+                    GROUP BY event_id, sport_key, sport_title, home_team, away_team, commence_time
+                    ORDER BY commence_time ASC
+                """
+                cursor.execute(query, (sport,))
+            else:
+                # Old schema - try to adapt
+                query = f"""
+                    SELECT DISTINCT 
+                        event_id,
+                        sport_key,
+                        sport_key as sport_title,
+                        home_team,
+                        away_team,
+                        commence_time,
+                        MIN(scraped_at) as first_scraped,
+                        COUNT(DISTINCT player_name) as player_count,
+                        COUNT(DISTINCT bookmaker_key) as bookmaker_count
+                    FROM player_props
+                    WHERE {date_condition}
+                    AND sport_key = ?
+                    GROUP BY event_id, sport_key, home_team, away_team, commence_time
+                    ORDER BY commence_time ASC
+                """
+                cursor.execute(query, (sport,))
+        else:
+            # No player_props table, return empty
+            logger.warning("No player_props table found!")
+            conn.close()
+            return jsonify({
+                'games': [], 
+                'count': 0,
+                'sport': sport,
+                'date_filter': date_filter,
+                'error': 'No player_props table found. Run the scraper first.',
+                'success': False
+            })
         
-        cursor.execute(query, (sport,))
         rows = cursor.fetchall()
         conn.close()
         
@@ -119,7 +183,7 @@ def get_games():
             games.append({
                 'event_id': row['event_id'],
                 'sport_key': row['sport_key'],
-                'sport_title': row['sport_title'],
+                'sport_title': row['sport_title'] if 'sport_title' in row.keys() else row['sport_key'],
                 'home_team': row['home_team'],
                 'away_team': row['away_team'],
                 'commence_time': row['commence_time'],
@@ -138,6 +202,8 @@ def get_games():
         })
     except Exception as e:
         logger.error(f"Error fetching games: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'games': [], 'error': str(e), 'success': False}), 500
 
 
@@ -513,11 +579,59 @@ def compare_lines():
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DB_PATH):
-        logger.warning(f"Database not found at {DB_PATH}.")
-        logger.info("Run the scraper first to populate data: python player_props_scraper.py")
+    print("\n" + "="*70)
+    print("  SPORTS BETTING ANALYTICS DASHBOARD")
+    print("="*70)
     
-    logger.info("Starting Sports Betting Analytics Dashboard")
-    logger.info("Dashboard: http://localhost:5000/")
+    if not os.path.exists(DB_PATH):
+        print(f"\n✗ ERROR: Database not found at: {DB_PATH}")
+        print("\nRun the scraper first:")
+        print("  python enhanced_scraper_v2.py basketball_nba")
+        print("\nOr create test data:")
+        print("  python create_test_database.py")
+        print("\n" + "="*70)
+    else:
+        print(f"\n✓ Database found: {DB_PATH}")
+        
+        # Check database contents
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            # List tables
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = [row[0] for row in cursor.fetchall()]
+            print(f"  Tables: {', '.join(tables)}")
+            
+            # Count data
+            if 'player_props' in tables:
+                cursor.execute("SELECT COUNT(*) FROM player_props")
+                count = cursor.fetchone()[0]
+                print(f"  Player Props: {count:,}")
+                
+                cursor.execute("SELECT COUNT(DISTINCT event_id) FROM player_props")
+                games = cursor.fetchone()[0]
+                print(f"  Games: {games}")
+                
+                cursor.execute("SELECT COUNT(DISTINCT player_name) FROM player_props")
+                players = cursor.fetchone()[0]
+                print(f"  Players: {players}")
+                
+                if count == 0:
+                    print("\n✗ WARNING: Database is empty!")
+                    print("  Run: python enhanced_scraper_v2.py basketball_nba")
+            else:
+                print("\n✗ WARNING: No player_props table found!")
+                print("  Run: python enhanced_scraper_v2.py basketball_nba")
+            
+            conn.close()
+        except Exception as e:
+            print(f"\n✗ ERROR reading database: {e}")
+        
+        print("\n" + "="*70)
+        print("  Starting server...")
+        print("  Dashboard: http://localhost:5000")
+        print("  Press Ctrl+C to stop")
+        print("="*70 + "\n")
     
     app.run(debug=True, host='0.0.0.0', port=5000)
