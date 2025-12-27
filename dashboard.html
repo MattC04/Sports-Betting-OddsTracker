@@ -101,15 +101,6 @@
         </div>
     </header>
 
-    <!-- Stats Bar -->
-    <div class="bg-white shadow-sm border-b">
-        <div class="container mx-auto px-6 py-4">
-            <div id="statsBar" class="grid grid-cols-2 md:grid-cols-6 gap-4">
-                <!-- Stats will be loaded here -->
-            </div>
-        </div>
-    </div>
-
     <!-- Main Content -->
     <div class="container mx-auto px-6 py-8">
         <!-- Sport Selection & Filters -->
@@ -197,7 +188,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('=== DOM CONTENT LOADED ===');
             console.log('Starting initialization...');
-            loadStats();
             loadGames();
             setupEventListeners();
         });
@@ -238,7 +228,6 @@
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', () => {
                     console.log('Refresh clicked');
-                    loadStats();
                     loadGames();
                 });
             }

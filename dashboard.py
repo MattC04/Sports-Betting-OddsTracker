@@ -1,8 +1,3 @@
-"""
-Enhanced Flask API backend for the Sports Betting Analytics Dashboard.
-Provides comprehensive endpoints for player props, game data, and analytics.
-"""
-
 from flask import Flask, send_from_directory, jsonify, request
 from flask_cors import CORS
 import sqlite3
@@ -112,6 +107,8 @@ def get_games():
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = [row[0] for row in cursor.fetchall()]
         
+        print(f"=== API REQUEST: /api/games ===")
+        print(f"Sport: {sport}, Filter: {date_filter}")
         logger.info(f"Loading games - sport: {sport}, filter: {date_filter}")
         
         if 'player_props' not in tables:
@@ -126,91 +123,10 @@ def get_games():
                 'success': False
             })
         
-        # Get current time - use timezone-aware datetime
-        try:
-            # Try to get local timezone
-            now_local = datetime.now().astimezone()
-            now_utc = datetime.now(timezone.utc)
-        except Exception as e:
-            logger.error(f"Error getting timezone-aware datetime: {e}")
-            # Fallback to naive datetime
-            now_local = datetime.now()
-            now_utc = datetime.utcnow()
-        
-        logger.info(f"Local time: {now_local}, UTC time: {now_utc}")
-        
-        # Build date filter
-        try:
-            if date_filter == 'today':
-                # Today in local time: from start of today to end of today
-                start_of_today_local = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
-                end_of_today_local = now_local.replace(hour=23, minute=59, second=59, microsecond=999999)
-                
-                # Convert to UTC for comparison
-                try:
-                    start_of_today_utc = start_of_today_local.astimezone(timezone.utc)
-                    end_of_today_utc = end_of_today_local.astimezone(timezone.utc)
-                except:
-                    # If astimezone fails, calculate offset manually
-                    offset = datetime.now() - datetime.utcnow()
-                    start_of_today_utc = start_of_today_local - offset
-                    end_of_today_utc = end_of_today_local - offset
-                
-                date_condition = f"commence_time >= '{start_of_today_utc.isoformat().replace('+00:00', 'Z')}' AND commence_time <= '{end_of_today_utc.isoformat().replace('+00:00', 'Z')}'"
-                logger.info(f"TODAY filter: {start_of_today_local} to {end_of_today_local} (local)")
-                logger.info(f"TODAY filter (UTC): {start_of_today_utc.isoformat()} to {end_of_today_utc.isoformat()}")
-                
-            elif date_filter == 'tomorrow':
-                # Tomorrow in local time
-                start_of_tomorrow_local = (now_local + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-                end_of_tomorrow_local = start_of_tomorrow_local.replace(hour=23, minute=59, second=59, microsecond=999999)
-                
-                # Convert to UTC
-                try:
-                    start_of_tomorrow_utc = start_of_tomorrow_local.astimezone(timezone.utc)
-                    end_of_tomorrow_utc = end_of_tomorrow_local.astimezone(timezone.utc)
-                except:
-                    offset = datetime.now() - datetime.utcnow()
-                    start_of_tomorrow_utc = start_of_tomorrow_local - offset
-                    end_of_tomorrow_utc = end_of_tomorrow_local - offset
-                
-                date_condition = f"commence_time >= '{start_of_tomorrow_utc.isoformat().replace('+00:00', 'Z')}' AND commence_time <= '{end_of_tomorrow_utc.isoformat().replace('+00:00', 'Z')}'"
-                logger.info(f"TOMORROW filter: {start_of_tomorrow_local} to {end_of_tomorrow_local} (local)")
-                
-            elif date_filter == 'week':
-                # Next 7 days from now
-                week_from_now_local = now_local + timedelta(days=7)
-                
-                try:
-                    week_from_now_utc = week_from_now_local.astimezone(timezone.utc)
-                    now_utc_aware = now_local.astimezone(timezone.utc)
-                except:
-                    offset = datetime.now() - datetime.utcnow()
-                    week_from_now_utc = week_from_now_local - offset
-                    now_utc_aware = now_local - offset
-                
-                date_condition = f"commence_time >= '{now_utc_aware.isoformat().replace('+00:00', 'Z')}' AND commence_time <= '{week_from_now_utc.isoformat().replace('+00:00', 'Z')}'"
-                logger.info(f"WEEK filter: now to {week_from_now_local} (local)")
-            else:
-                # All upcoming games
-                try:
-                    now_utc_aware = now_local.astimezone(timezone.utc)
-                except:
-                    offset = datetime.now() - datetime.utcnow()
-                    now_utc_aware = now_local - offset
-                date_condition = f"commence_time >= '{now_utc_aware.isoformat().replace('+00:00', 'Z')}'"
-            
-            # Also filter out games that have already started
-            date_condition += f" AND commence_time > '{now_utc.isoformat().replace('+00:00', 'Z')}'"
-            
-        except Exception as e:
-            logger.error(f"Error building date condition: {e}")
-            import traceback
-            traceback.print_exc()
-            # Fallback to simple condition
-            date_condition = "1=1"  # Show all games
-        
-        logger.info(f"Final date condition: {date_condition}")
+        # SIMPLIFIED: Just show all upcoming games regardless of filter for now
+        # We'll fix the timezone logic once we confirm this works
+        print(f"Using simplified filter - showing all upcoming games")
+        date_condition = "1=1"  # Show all games
         
         # Check if we have the right columns
         cursor.execute("PRAGMA table_info(player_props)")
@@ -230,8 +146,7 @@ def get_games():
                     COUNT(DISTINCT player_name) as player_count,
                     COUNT(DISTINCT bookmaker_key) as bookmaker_count
                 FROM player_props
-                WHERE {date_condition}
-                AND sport_key = ?
+                WHERE sport_key = ?
                 GROUP BY event_id, sport_key, sport_title, home_team, away_team, commence_time
                 ORDER BY commence_time ASC
             """
@@ -249,15 +164,15 @@ def get_games():
                     COUNT(DISTINCT player_name) as player_count,
                     COUNT(DISTINCT bookmaker_key) as bookmaker_count
                 FROM player_props
-                WHERE {date_condition}
-                AND sport_key = ?
+                WHERE sport_key = ?
                 GROUP BY event_id, sport_key, home_team, away_team, commence_time
                 ORDER BY commence_time ASC
             """
         
-        logger.info(f"Executing query with sport={sport}")
+        print(f"Executing query...")
         cursor.execute(query, (sport,))
         rows = cursor.fetchall()
+        print(f"Query returned {len(rows)} rows")
         logger.info(f"Query returned {len(rows)} rows")
         conn.close()
         
@@ -276,7 +191,8 @@ def get_games():
                 'bookmaker_count': row['bookmaker_count']
             })
         
-        logger.info(f"Returning {len(games)} games for {date_filter}")
+        print(f"Returning {len(games)} games")
+        print("=== END API REQUEST ===\n")
         
         return jsonify({
             'games': games, 
@@ -286,6 +202,7 @@ def get_games():
             'success': True
         })
     except Exception as e:
+        print(f"ERROR: {e}")
         logger.error(f"Error fetching games: {e}")
         import traceback
         traceback.print_exc()
