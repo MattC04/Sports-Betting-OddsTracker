@@ -147,55 +147,61 @@
     </div>
 
     <!-- Game Modal -->
-    <div id="gameModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
-        <div class="min-h-screen px-4 flex items-center justify-center">
-            <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-                <!-- Modal Header -->
-                <div class="gradient-bg text-white p-6 flex justify-between items-center">
-                    <div>
-                        <h2 id="modalTitle" class="text-2xl font-bold mb-1">Game Details</h2>
-                        <p id="modalSubtitle" class="text-sm opacity-90"></p>
+    <div id="gameModal" class="hidden fixed inset-0 bg-gray-50 z-50 overflow-y-auto">
+        <div class="min-h-screen">
+            <!-- Header -->
+            <header class="gradient-bg text-white shadow-lg">
+                <div class="container mx-auto px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <button id="closeModal" class="hover:bg-white/20 rounded-full p-2 transition">
+                                <i class="fas fa-arrow-left text-xl"></i>
+                            </button>
+                            <div>
+                                <h2 id="modalTitle" class="text-2xl font-bold">Game Details</h2>
+                                <p id="modalSubtitle" class="text-sm opacity-90"></p>
+                            </div>
+                        </div>
                     </div>
-                    <button id="closeModal" class="text-white hover:bg-white/20 rounded-full p-2 transition">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
                 </div>
-                
-                <!-- Modal Content -->
-                <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                    <div id="modalContent">
-                        <!-- Content loaded dynamically -->
-                    </div>
+            </header>
+            
+            <!-- Content -->
+            <div class="container mx-auto px-6 py-8">
+                <div id="modalContent">
+                    <!-- Content loaded dynamically -->
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Player Detail Modal -->
-    <div id="playerModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
-        <div class="min-h-screen px-4 flex items-center justify-center">
-            <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-                <!-- Modal Header -->
-                <div class="gradient-bg text-white p-6 flex justify-between items-center">
-                    <div class="flex items-center space-x-4">
-                        <button id="backToGameModal" class="text-white hover:bg-white/20 rounded-full p-2 transition" title="Back to all players">
-                            <i class="fas fa-arrow-left text-xl"></i>
-                        </button>
-                        <div>
-                            <h2 id="playerModalTitle" class="text-2xl font-bold mb-1">Player Details</h2>
-                            <p id="playerModalSubtitle" class="text-sm opacity-90"></p>
+    <div id="playerModal" class="hidden fixed inset-0 bg-gray-50 z-50 overflow-y-auto">
+        <div class="min-h-screen">
+            <!-- Header -->
+            <header class="gradient-bg text-white shadow-lg">
+                <div class="container mx-auto px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <button id="backToGameModal" class="hover:bg-white/20 rounded-full p-2 transition" title="Back to all players">
+                                <i class="fas fa-arrow-left text-xl"></i>
+                            </button>
+                            <div>
+                                <h2 id="playerModalTitle" class="text-2xl font-bold">Player Details</h2>
+                                <p id="playerModalSubtitle" class="text-sm opacity-90"></p>
+                            </div>
                         </div>
+                        <button id="closePlayerModal" class="hover:bg-white/20 rounded-full p-2 transition">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
                     </div>
-                    <button id="closePlayerModal" class="text-white hover:bg-white/20 rounded-full p-2 transition">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
                 </div>
-                
-                <!-- Modal Content -->
-                <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                    <div id="playerModalContent">
-                        <!-- Player content loaded dynamically -->
-                    </div>
+            </header>
+            
+            <!-- Content -->
+            <div class="container mx-auto px-6 py-8">
+                <div id="playerModalContent">
+                    <!-- Player content loaded dynamically -->
                 </div>
             </div>
         </div>
@@ -289,7 +295,9 @@
             const closePlayerModal = document.getElementById('closePlayerModal');
             if (closePlayerModal) {
                 closePlayerModal.addEventListener('click', () => {
+                    // Close both modals to return to main dashboard
                     document.getElementById('playerModal').classList.add('hidden');
+                    document.getElementById('gameModal').classList.add('hidden');
                 });
             }
 
