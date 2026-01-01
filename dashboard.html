@@ -3,97 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sports Betting Analytics Dashboard</title>
+    <title>Sports Analytics Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
         
         * {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
-        .gradient-bg {
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+        }
+        
+        /* Glassmorphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .glass-white {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Gradient header */
+        .gradient-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gradient-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+        
+        /* Card hover effects */
+        .card-modern {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        
+        .card-modern:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3), 0 0 0 1px rgba(102, 126, 234, 0.5);
+        }
+        
+        .card-modern:hover::before {
+            opacity: 1;
+        }
+        
+        /* Animated gradient button */
+        .btn-gradient {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
         }
         
-        .card-hover {
-            transition: all 0.3s ease;
+        .btn-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
         }
         
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        .btn-gradient:hover::before {
+            left: 100%;
         }
         
+        .btn-gradient:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Smooth fade in */
         .fade-in {
-            animation: fadeIn 0.5s ease-in;
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
         }
         
-        .loading-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        /* Stagger animation */
+        .stagger-item {
+            opacity: 0;
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
+        .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+        .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+        .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+        .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+        .stagger-item:nth-child(5) { animation-delay: 0.5s; }
         
+        /* Prop badge with glow */
         .prop-badge {
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            position: relative;
         }
         
         .prop-badge:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Loading spinner */
+        .loading-spinner {
+            border: 3px solid rgba(102, 126, 234, 0.1);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         /* Custom scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
         
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: rgba(255, 255, 255, 0.05);
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 5px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: linear-gradient(135deg, #764ba2, #f093fb);
+        }
+        
+        /* Search input glow */
+        .search-glow {
+            transition: all 0.3s;
+        }
+        
+        .search-glow:focus {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            border-color: #667eea;
+        }
+        
+        /* Sport selector */
+        .sport-pill {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .sport-pill:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sport-pill.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Odds display */
+        .odds-positive {
+            color: #10b981;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+        
+        .odds-negative {
+            color: #ef4444;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+        }
+        
+        /* Team vs animation */
+        .vs-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            animation: pulse-glow 2s infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(118, 75, 162, 0.6);
+            }
+        }
+        
+        /* Modal backdrop */
+        .modal-backdrop {
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        /* Stat counter animation */
+        .stat-number {
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* No data state */
+        .empty-state {
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        
+        .empty-state:hover {
+            opacity: 1;
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
     <!-- Header -->
-    <header class="gradient-bg text-white shadow-lg">
-        <div class="container mx-auto px-6 py-4">
+    <header class="gradient-header text-white shadow-2xl sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-6">
             <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <i class="fas fa-basketball-ball text-3xl"></i>
+                <div class="flex items-center space-x-4 relative z-10">
+                    <div class="bg-white/20 backdrop-blur-sm p-3 rounded-2xl">
+                        <i class="fas fa-chart-line text-3xl"></i>
+                    </div>
                     <div>
-                        <h1 class="text-2xl font-bold">Sports Betting Analytics</h1>
-                        <p class="text-sm opacity-90">Player Props & Line Analysis</p>
+                        <h1 class="text-3xl font-black tracking-tight">Sports Analytics</h1>
+                        <p class="text-sm font-light opacity-90">Real-time Player Props & Betting Intelligence</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-4 relative z-10">
                     <div class="relative">
                         <input 
                             type="text" 
                             id="searchInput"
                             placeholder="Search players, teams..." 
-                            class="pl-10 pr-4 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 w-64"
+                            class="search-glow pl-12 pr-6 py-3 rounded-2xl bg-white/20 backdrop-blur-sm text-white placeholder-white/70 focus:outline-none focus:bg-white/30 w-72 transition-all"
                         >
-                        <i class="fas fa-search absolute left-3 top-3 text-white/70"></i>
+                        <i class="fas fa-search absolute left-4 top-4 text-white/70"></i>
                     </div>
-                    <button id="refreshBtn" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition duration-200">
+                    <button id="refreshBtn" class="btn-gradient px-6 py-3 rounded-2xl font-semibold transition-all">
                         <i class="fas fa-sync-alt mr-2"></i>Refresh
                     </button>
                 </div>
@@ -103,25 +296,35 @@
 
     <!-- Main Content -->
     <div class="container mx-auto px-6 py-8">
-        <!-- Sport Selection & Filters -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6 fade-in">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center space-x-4">
-                    <label class="text-sm font-semibold text-gray-700">Sport:</label>
-                    <select id="sportSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="basketball_nba">NBA</option>
-                        <option value="americanfootball_nfl">NFL</option>
-                        <option value="baseball_mlb">MLB</option>
-                        <option value="icehockey_nhl">NHL</option>
-                    </select>
+        <!-- Filters -->
+        <div class="glass-white rounded-3xl p-6 mb-8 fade-in shadow-2xl">
+            <div class="flex flex-wrap items-center justify-between gap-6">
+                <!-- Sport Selection -->
+                <div class="flex items-center space-x-3">
+                    <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Sport</label>
+                    <div class="flex space-x-2">
+                        <button class="sport-pill active px-6 py-2 rounded-full font-semibold text-sm" data-sport="basketball_nba">
+                            <i class="fas fa-basketball-ball mr-2"></i>NBA
+                        </button>
+                        <button class="sport-pill glass px-6 py-2 rounded-full font-semibold text-sm" data-sport="americanfootball_nfl">
+                            <i class="fas fa-football-ball mr-2"></i>NFL
+                        </button>
+                        <button class="sport-pill glass px-6 py-2 rounded-full font-semibold text-sm" data-sport="baseball_mlb">
+                            <i class="fas fa-baseball-ball mr-2"></i>MLB
+                        </button>
+                        <button class="sport-pill glass px-6 py-2 rounded-full font-semibold text-sm" data-sport="icehockey_nhl">
+                            <i class="fas fa-hockey-puck mr-2"></i>NHL
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="flex items-center space-x-4">
-                    <label class="text-sm font-semibold text-gray-700">Date:</label>
+                <!-- Date Filters -->
+                <div class="flex items-center space-x-3">
+                    <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Date</label>
                     <div class="flex space-x-2">
-                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="today">Today</button>
-                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-filter="tomorrow">Tomorrow</button>
-                        <button class="date-filter-btn px-4 py-2 rounded-lg bg-purple-600 text-white" data-filter="week">This Week</button>
+                        <button class="date-filter-btn glass px-5 py-2 rounded-full font-semibold text-sm transition-all" data-filter="today">Today</button>
+                        <button class="date-filter-btn glass px-5 py-2 rounded-full font-semibold text-sm transition-all" data-filter="tomorrow">Tomorrow</button>
+                        <button class="date-filter-btn bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2 rounded-full font-semibold text-sm shadow-lg" data-filter="week">This Week</button>
                     </div>
                 </div>
             </div>
@@ -130,302 +333,154 @@
         <!-- Games Grid -->
         <div id="gamesContainer" class="space-y-6">
             <!-- Loading state -->
-            <div id="loadingState" class="text-center py-12">
-                <i class="fas fa-spinner fa-spin text-4xl text-purple-600 mb-4"></i>
-                <p class="text-gray-600">Loading games...</p>
+            <div id="loadingState" class="text-center py-20">
+                <div class="loading-spinner mx-auto mb-6"></div>
+                <p class="text-white text-lg font-semibold">Loading games...</p>
             </div>
-            
-            <!-- Games will be loaded here -->
         </div>
 
         <!-- No Data State -->
-        <div id="noDataState" class="hidden text-center py-12">
-            <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-700 mb-2">No Games Found</h3>
-            <p class="text-gray-500" id="noDataMessage">Try selecting a different sport or date range</p>
+        <div id="noDataState" class="hidden text-center py-20 empty-state">
+            <div class="glass-white rounded-3xl p-12 inline-block">
+                <i class="fas fa-inbox text-8xl text-gray-300 mb-6"></i>
+                <h3 class="text-2xl font-bold text-gray-700 mb-3">No Games Found</h3>
+                <p class="text-gray-500 text-lg" id="noDataMessage">Try selecting a different sport or date range</p>
+            </div>
         </div>
     </div>
 
     <!-- Game Modal -->
-    <div id="gameModal" class="hidden fixed inset-0 bg-gray-50 z-50 overflow-y-auto">
-        <div class="min-h-screen">
-            <!-- Header -->
-            <header class="gradient-bg text-white shadow-lg">
-                <div class="container mx-auto px-6 py-4">
+    <div id="gameModal" class="hidden fixed inset-0 modal-backdrop z-50 overflow-y-auto">
+        <div class="min-h-screen" style="background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);">
+            <header class="gradient-header text-white shadow-2xl sticky top-0 z-10">
+                <div class="container mx-auto px-6 py-5">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-4">
-                            <button id="closeModal" class="hover:bg-white/20 rounded-full p-2 transition">
+                            <button id="closeModal" class="hover:bg-white/20 rounded-full p-3 transition-all">
                                 <i class="fas fa-arrow-left text-xl"></i>
                             </button>
                             <div>
-                                <h2 id="modalTitle" class="text-2xl font-bold">Game Details</h2>
-                                <p id="modalSubtitle" class="text-sm opacity-90"></p>
+                                <h2 id="modalTitle" class="text-2xl font-black">Game Details</h2>
+                                <p id="modalSubtitle" class="text-sm font-light opacity-90"></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </header>
             
-            <!-- Content -->
             <div class="container mx-auto px-6 py-8">
-                <div id="modalContent">
-                    <!-- Content loaded dynamically -->
-                </div>
+                <div id="modalContent"></div>
             </div>
         </div>
     </div>
 
-    <!-- Player Detail Modal -->
-    <div id="playerModal" class="hidden fixed inset-0 bg-gray-50 z-50 overflow-y-auto">
-        <div class="min-h-screen">
-            <!-- Header -->
-            <header class="gradient-bg text-white shadow-lg">
-                <div class="container mx-auto px-6 py-4">
+    <!-- Player Modal -->
+    <div id="playerModal" class="hidden fixed inset-0 modal-backdrop z-50 overflow-y-auto">
+        <div class="min-h-screen" style="background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);">
+            <header class="gradient-header text-white shadow-2xl sticky top-0 z-10">
+                <div class="container mx-auto px-6 py-5">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-4">
-                            <button id="backToGameModal" class="hover:bg-white/20 rounded-full p-2 transition" title="Back to all players">
+                            <button id="backToGameModal" class="hover:bg-white/20 rounded-full p-3 transition-all">
                                 <i class="fas fa-arrow-left text-xl"></i>
                             </button>
                             <div>
-                                <h2 id="playerModalTitle" class="text-2xl font-bold">Player Details</h2>
-                                <p id="playerModalSubtitle" class="text-sm opacity-90"></p>
+                                <h2 id="playerModalTitle" class="text-2xl font-black">Player Details</h2>
+                                <p id="playerModalSubtitle" class="text-sm font-light opacity-90"></p>
                             </div>
                         </div>
-                        <button id="closePlayerModal" class="hover:bg-white/20 rounded-full p-2 transition">
+                        <button id="closePlayerModal" class="hover:bg-white/20 rounded-full p-3 transition-all">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
                 </div>
             </header>
             
-            <!-- Content -->
             <div class="container mx-auto px-6 py-8">
-                <div id="playerModalContent">
-                    <!-- Player content loaded dynamically -->
-                </div>
+                <div id="playerModalContent"></div>
             </div>
         </div>
     </div>
 
     <script>
-        console.log('=== DASHBOARD SCRIPT LOADING ===');
-        console.log('window.location:', window.location);
-        console.log('window.location.origin:', window.location.origin);
-        console.log('window.location.protocol:', window.location.protocol);
-        console.log('window.location.host:', window.location.host);
-        
-        // API Configuration - Fix for local development
-        let API_BASE;
-        
-        if (window.location.origin && window.location.origin !== 'null') {
-            // Normal case - accessed via http://localhost:5000
-            API_BASE = window.location.origin;
-        } else if (window.location.protocol === 'file:') {
-            // Opened directly as file
-            console.warn('⚠️ Page opened as file:// - Using localhost:5000');
-            API_BASE = 'http://localhost:5000';
-        } else {
-            // Fallback
-            API_BASE = 'http://localhost:5000';
-        }
-        
+        let API_BASE = window.location.origin || 'http://localhost:5000';
         let currentSport = 'basketball_nba';
         let currentDateFilter = 'week';
-        let currentGameId = null;
 
-        console.log('✓ API_BASE set to:', API_BASE);
-        console.log('Initial sport:', currentSport);
-        console.log('Initial date filter:', currentDateFilter);
-
-        // Initialize Dashboard
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('=== DOM CONTENT LOADED ===');
-            console.log('Starting initialization...');
             loadGames();
             setupEventListeners();
         });
 
-        // Setup Event Listeners
         function setupEventListeners() {
-            console.log('Setting up event listeners...');
-            
-            const sportSelect = document.getElementById('sportSelect');
-            if (sportSelect) {
-                sportSelect.addEventListener('change', (e) => {
-                    console.log('Sport changed to:', e.target.value);
-                    currentSport = e.target.value;
+            // Sport pills
+            document.querySelectorAll('.sport-pill').forEach(pill => {
+                pill.addEventListener('click', (e) => {
+                    document.querySelectorAll('.sport-pill').forEach(p => {
+                        p.classList.remove('active', 'bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white');
+                        p.classList.add('glass');
+                    });
+                    e.target.classList.remove('glass');
+                    e.target.classList.add('active');
+                    currentSport = e.target.dataset.sport;
                     loadGames();
                 });
-                console.log('Sport select listener added');
-            } else {
-                console.error('sportSelect element not found!');
-            }
+            });
 
-            const dateFilterBtns = document.querySelectorAll('.date-filter-btn');
-            console.log('Found', dateFilterBtns.length, 'date filter buttons');
-            dateFilterBtns.forEach(btn => {
+            // Date filters
+            document.querySelectorAll('.date-filter-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    console.log('Date filter clicked:', e.target.dataset.filter);
                     document.querySelectorAll('.date-filter-btn').forEach(b => {
-                        b.classList.remove('bg-purple-600', 'text-white');
-                        b.classList.add('bg-gray-200', 'text-gray-700');
+                        b.classList.remove('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white', 'shadow-lg');
+                        b.classList.add('glass');
                     });
-                    e.target.classList.remove('bg-gray-200', 'text-gray-700');
-                    e.target.classList.add('bg-purple-600', 'text-white');
+                    e.target.classList.remove('glass');
+                    e.target.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white', 'shadow-lg');
                     currentDateFilter = e.target.dataset.filter;
                     loadGames();
                 });
             });
 
-            const refreshBtn = document.getElementById('refreshBtn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', () => {
-                    console.log('Refresh clicked');
-                    loadGames();
-                });
-            }
-
-            const closeModal = document.getElementById('closeModal');
-            if (closeModal) {
-                closeModal.addEventListener('click', () => {
-                    document.getElementById('gameModal').classList.add('hidden');
-                });
-            }
-
-            const closePlayerModal = document.getElementById('closePlayerModal');
-            if (closePlayerModal) {
-                closePlayerModal.addEventListener('click', () => {
-                    // Close both modals to return to main dashboard
-                    document.getElementById('playerModal').classList.add('hidden');
-                    document.getElementById('gameModal').classList.add('hidden');
-                });
-            }
-
-            const backToGameModal = document.getElementById('backToGameModal');
-            if (backToGameModal) {
-                backToGameModal.addEventListener('click', () => {
-                    console.log('Back to game modal');
-                    // Hide player modal
-                    document.getElementById('playerModal').classList.add('hidden');
-                    // Show game modal
-                    document.getElementById('gameModal').classList.remove('hidden');
-                });
-            }
-
-            // Search functionality
-            let searchTimeout;
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    clearTimeout(searchTimeout);
-                    const query = e.target.value.trim();
-                    console.log('Search input:', query);
-                    if (query.length >= 2) {
-                        searchTimeout = setTimeout(() => performSearch(query), 300);
-                    }
-                });
-                console.log('Search listener added');
-            } else {
-                console.error('searchInput element not found!');
-            }
-            
-            console.log('All event listeners setup complete');
+            document.getElementById('refreshBtn')?.addEventListener('click', loadGames);
+            document.getElementById('closeModal')?.addEventListener('click', () => {
+                document.getElementById('gameModal').classList.add('hidden');
+            });
+            document.getElementById('closePlayerModal')?.addEventListener('click', () => {
+                document.getElementById('playerModal').classList.add('hidden');
+                document.getElementById('gameModal').classList.add('hidden');
+            });
+            document.getElementById('backToGameModal')?.addEventListener('click', () => {
+                document.getElementById('playerModal').classList.add('hidden');
+                document.getElementById('gameModal').classList.remove('hidden');
+            });
         }
 
-        // Load Dashboard Stats
-        async function loadStats() {
-            try {
-                const response = await fetch(`${API_BASE}/api/stats`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayStats(data);
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-
-        // Display Stats
-        function displayStats(stats) {
-            const statsBar = document.getElementById('statsBar');
-            statsBar.innerHTML = `
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-purple-600">${stats.today_games || 0}</div>
-                    <div class="text-xs text-gray-600">Today's Games</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-blue-600">${stats.unique_players || 0}</div>
-                    <div class="text-xs text-gray-600">Players</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-green-600">${stats.total_props || 0}</div>
-                    <div class="text-xs text-gray-600">Total Props</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-orange-600">${stats.total_games || 0}</div>
-                    <div class="text-xs text-gray-600">All Games</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-red-600">${stats.unique_bookmakers || 0}</div>
-                    <div class="text-xs text-gray-600">Bookmakers</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-xs font-semibold text-gray-700">Last Update</div>
-                    <div class="text-xs text-gray-600">${stats.last_update ? new Date(stats.last_update).toLocaleTimeString() : 'N/A'}</div>
-                </div>
-            `;
-        }
-
-        // Load Games
         async function loadGames() {
-            console.log('=== LOAD GAMES ===');
-            console.log('Sport:', currentSport);
-            console.log('Date filter:', currentDateFilter);
-            
             const container = document.getElementById('gamesContainer');
             const loadingState = document.getElementById('loadingState');
             const noDataState = document.getElementById('noDataState');
-            
-            console.log('Container elements:', {
-                container: !!container,
-                loadingState: !!loadingState,
-                noDataState: !!noDataState
-            });
             
             loadingState.classList.remove('hidden');
             noDataState.classList.add('hidden');
             container.innerHTML = '';
 
             try {
-                const url = `${API_BASE}/api/games?sport=${currentSport}&date=${currentDateFilter}`;
-                console.log('Fetching:', url);
-                
-                const response = await fetch(url);
-                console.log('Response status:', response.status);
-                
+                const response = await fetch(`${API_BASE}/api/games?sport=${currentSport}&date=${currentDateFilter}`);
                 const data = await response.json();
-                console.log('Response data:', data);
-                console.log('Games count:', data.games ? data.games.length : 0);
 
                 loadingState.classList.add('hidden');
 
                 if (data.success && data.games.length > 0) {
-                    console.log('Displaying', data.games.length, 'games');
                     displayGames(data.games);
                 } else {
-                    console.log('No games to display');
-                    
-                    // Set appropriate message based on filter
                     const noDataMsg = document.getElementById('noDataMessage');
                     if (currentDateFilter === 'today') {
                         noDataMsg.textContent = 'No games scheduled for today. Try "Tomorrow" or "This Week"';
                     } else if (currentDateFilter === 'tomorrow') {
                         noDataMsg.textContent = 'No games scheduled for tomorrow. Try "This Week"';
                     } else {
-                        noDataMsg.textContent = 'No upcoming games found. Try running the scraper to fetch new data.';
+                        noDataMsg.textContent = 'No upcoming games found. Run the scraper to fetch new data.';
                     }
-                    
                     noDataState.classList.remove('hidden');
                 }
             } catch (error) {
@@ -435,33 +490,41 @@
             }
         }
 
-        // Display Games
         function displayGames(games) {
             const container = document.getElementById('gamesContainer');
             
-            games.forEach(game => {
+            games.forEach((game, index) => {
                 const gameCard = document.createElement('div');
-                gameCard.className = 'bg-white rounded-lg shadow-md p-6 card-hover cursor-pointer fade-in';
+                gameCard.className = `glass-white rounded-3xl p-8 card-modern cursor-pointer stagger-item shadow-2xl`;
                 gameCard.onclick = () => openGameModal(game.event_id);
                 
                 gameCard.innerHTML = `
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between">
                         <div class="flex-1">
-                            <div class="flex items-center space-x-3 mb-2">
-                                <i class="fas fa-basketball-ball text-orange-500"></i>
-                                <span class="font-semibold text-lg">${game.away_team}</span>
-                                <span class="text-gray-500">@</span>
-                                <span class="font-semibold text-lg">${game.home_team}</span>
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="text-4xl font-black text-gray-800">${game.away_team}</div>
+                                <div class="vs-badge text-white px-4 py-2 rounded-full text-sm font-bold">VS</div>
+                                <div class="text-4xl font-black text-gray-800">${game.home_team}</div>
                             </div>
-                            <div class="flex items-center space-x-4 text-sm text-gray-600">
-                                <span><i class="far fa-clock mr-1"></i>${game.commence_time_formatted}</span>
-                                <span><i class="fas fa-users mr-1"></i>${game.player_count} Players</span>
-                                <span><i class="fas fa-store mr-1"></i>${game.bookmaker_count} Bookmakers</span>
+                            <div class="flex items-center space-x-6 text-sm text-gray-600 font-medium">
+                                <span class="flex items-center">
+                                    <i class="far fa-clock mr-2 text-purple-600"></i>
+                                    ${game.commence_time_formatted}
+                                </span>
+                                <span class="flex items-center">
+                                    <i class="fas fa-users mr-2 text-purple-600"></i>
+                                    <span class="stat-number">${game.player_count}</span> Players
+                                </span>
+                                <span class="flex items-center">
+                                    <i class="fas fa-store mr-2 text-purple-600"></i>
+                                    <span class="stat-number">${game.bookmaker_count}</span> Bookmakers
+                                </span>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <button class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition duration-200">
-                                View Props <i class="fas fa-arrow-right ml-2"></i>
+                        <div>
+                            <button class="btn-gradient px-8 py-4 rounded-2xl font-bold text-white text-lg shadow-xl">
+                                View Props
+                                <i class="fas fa-arrow-right ml-3"></i>
                             </button>
                         </div>
                     </div>
@@ -471,13 +534,12 @@
             });
         }
 
-        // Open Game Modal
         async function openGameModal(eventId) {
             const modal = document.getElementById('gameModal');
             const modalContent = document.getElementById('modalContent');
             
             modal.classList.remove('hidden');
-            modalContent.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-purple-600"></i></div>';
+            modalContent.innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto"></div></div>';
             
             try {
                 const response = await fetch(`${API_BASE}/api/game/${eventId}`);
@@ -488,11 +550,10 @@
                 }
             } catch (error) {
                 console.error('Error loading game details:', error);
-                modalContent.innerHTML = '<div class="text-center py-8 text-red-600"><i class="fas fa-exclamation-circle text-3xl mb-2"></i><p>Error loading game details</p></div>';
+                modalContent.innerHTML = '<div class="text-center py-12 text-red-500"><i class="fas fa-exclamation-circle text-4xl mb-3"></i><p class="text-lg">Error loading game details</p></div>';
             }
         }
 
-        // Display Game Details
         function displayGameDetails(data) {
             const modalTitle = document.getElementById('modalTitle');
             const modalSubtitle = document.getElementById('modalSubtitle');
@@ -501,35 +562,28 @@
             modalTitle.textContent = `${data.game.away_team} @ ${data.game.home_team}`;
             modalSubtitle.textContent = `${data.player_count} Players • ${data.bookmakers.length} Bookmakers • ${data.total_props} Props`;
             
-            // Store game data globally for player page
             window.currentGameData = data;
             
-            // Group players by team (simplified - you can enhance this)
-            let playersHTML = '<div class="space-y-4">';
+            let playersHTML = '<div class="space-y-5">';
             
             data.players.forEach(player => {
-                // Get unique prop types for this player
                 const propTypes = [...new Set(player.props.map(p => p.prop_type))];
                 
                 playersHTML += `
-                    <div class="border rounded-lg p-4 hover:border-purple-500 hover:shadow-lg transition cursor-pointer" 
+                    <div class="glass-white rounded-3xl p-6 hover:shadow-2xl transition-all cursor-pointer border-2 border-transparent hover:border-purple-400" 
                          onclick="showPlayerPage('${player.name.replace(/'/g, "\\'")}', '${data.game.event_id}')">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-lg font-semibold text-gray-800">
-                                <i class="fas fa-user-circle text-purple-600 mr-2"></i>${player.name}
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                <i class="fas fa-user-circle text-purple-600 mr-3"></i>${player.name}
                             </h3>
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap gap-2 items-center">
                                 ${propTypes.map(type => `
-                                    <span class="prop-badge bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
+                                    <span class="prop-badge bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                                         ${formatPropType(type)}
                                     </span>
                                 `).join('')}
-                                <i class="fas fa-arrow-right text-purple-600"></i>
+                                <i class="fas fa-arrow-right text-purple-600 text-xl ml-2"></i>
                             </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            ${getPlayerPropsSummary(player.props)}
                         </div>
                     </div>
                 `;
@@ -539,23 +593,14 @@
             modalContent.innerHTML = playersHTML;
         }
 
-        // Show individual player page
         function showPlayerPage(playerName, eventId) {
-            console.log('Opening player page for:', playerName);
-            
-            // Find player data
             const gameData = window.currentGameData;
             const player = gameData.players.find(p => p.name === playerName);
             
-            if (!player) {
-                console.error('Player not found:', playerName);
-                return;
-            }
+            if (!player) return;
             
-            // Close the game modal
             document.getElementById('gameModal').classList.add('hidden');
             
-            // Show player modal instead
             const playerModal = document.getElementById('playerModal');
             const playerModalTitle = document.getElementById('playerModalTitle');
             const playerModalSubtitle = document.getElementById('playerModalSubtitle');
@@ -564,16 +609,13 @@
             playerModalTitle.textContent = playerName;
             playerModalSubtitle.textContent = `${gameData.game.away_team} @ ${gameData.game.home_team}`;
             
-            // Build detailed player view
             const propTypes = [...new Set(player.props.map(p => p.prop_type))];
             
             let html = '<div class="space-y-6">';
             
-            // For each prop type, show detailed breakdown
             propTypes.forEach(propType => {
                 const propsOfType = player.props.filter(p => p.prop_type === propType);
                 
-                // Group by line
                 const lineGroups = {};
                 propsOfType.forEach(prop => {
                     const line = prop.outcome_point;
@@ -588,39 +630,37 @@
                 });
                 
                 html += `
-                    <div class="bg-white rounded-lg border p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">
-                            <i class="fas fa-chart-line text-purple-600 mr-2"></i>
+                    <div class="glass-white rounded-3xl p-8 shadow-2xl">
+                        <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center">
+                            <i class="fas fa-chart-line text-purple-600 mr-3"></i>
                             ${formatPropType(propType)}
                         </h3>
                 `;
                 
-                // For each line
                 Object.keys(lineGroups).sort((a, b) => parseFloat(a) - parseFloat(b)).forEach(line => {
                     const { over, under } = lineGroups[line];
                     
                     html += `
-                        <div class="mb-4 p-4 bg-gray-50 rounded-lg">
-                            <div class="text-center mb-3">
-                                <span class="text-sm text-gray-600">Line:</span>
-                                <span class="text-3xl font-bold text-purple-600 ml-2">${line}</span>
+                        <div class="mb-6 glass rounded-2xl p-6">
+                            <div class="text-center mb-5">
+                                <span class="text-sm text-gray-400 uppercase tracking-wide font-bold">Line</span>
+                                <div class="text-6xl font-black stat-number mt-2">${line}</div>
                             </div>
                             
-                            <div class="grid md:grid-cols-2 gap-4">
-                                <!-- OVER -->
+                            <div class="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <h4 class="text-sm font-semibold text-green-700 mb-2 uppercase">
-                                        <i class="fas fa-arrow-up mr-1"></i>Over ${line}
+                                    <h4 class="text-sm font-bold text-green-600 mb-3 uppercase tracking-wide flex items-center">
+                                        <i class="fas fa-arrow-up mr-2"></i>Over ${line}
                                     </h4>
-                                    <div class="space-y-2">
+                                    <div class="space-y-3">
                     `;
                     
                     over.forEach(prop => {
                         html += `
-                            <div class="bg-white p-3 rounded border">
+                            <div class="glass-white p-4 rounded-xl border-2 border-transparent hover:border-green-400 transition-all">
                                 <div class="flex justify-between items-center">
-                                    <span class="font-medium text-gray-800">${prop.bookmaker_title}</span>
-                                    <span class="text-xl font-bold ${prop.outcome_price > 0 ? 'text-green-600' : 'text-gray-800'}">
+                                    <span class="font-bold text-gray-800">${prop.bookmaker_title}</span>
+                                    <span class="text-2xl font-black ${prop.outcome_price > 0 ? 'odds-positive' : 'text-gray-800'}">
                                         ${prop.outcome_price > 0 ? '+' : ''}${prop.outcome_price}
                                     </span>
                                 </div>
@@ -632,20 +672,19 @@
                                     </div>
                                 </div>
                                 
-                                <!-- UNDER -->
                                 <div>
-                                    <h4 class="text-sm font-semibold text-red-700 mb-2 uppercase">
-                                        <i class="fas fa-arrow-down mr-1"></i>Under ${line}
+                                    <h4 class="text-sm font-bold text-red-600 mb-3 uppercase tracking-wide flex items-center">
+                                        <i class="fas fa-arrow-down mr-2"></i>Under ${line}
                                     </h4>
-                                    <div class="space-y-2">
+                                    <div class="space-y-3">
                     `;
                     
                     under.forEach(prop => {
                         html += `
-                            <div class="bg-white p-3 rounded border">
+                            <div class="glass-white p-4 rounded-xl border-2 border-transparent hover:border-red-400 transition-all">
                                 <div class="flex justify-between items-center">
-                                    <span class="font-medium text-gray-800">${prop.bookmaker_title}</span>
-                                    <span class="text-xl font-bold ${prop.outcome_price > 0 ? 'text-green-600' : 'text-gray-800'}">
+                                    <span class="font-bold text-gray-800">${prop.bookmaker_title}</span>
+                                    <span class="text-2xl font-black ${prop.outcome_price > 0 ? 'odds-positive' : 'text-gray-800'}">
                                         ${prop.outcome_price > 0 ? '+' : ''}${prop.outcome_price}
                                     </span>
                                 </div>
@@ -670,50 +709,6 @@
             playerModal.classList.remove('hidden');
         }
 
-        // Get Player Props Summary
-        function getPlayerPropsSummary(props) {
-            // Group by prop type and line
-            const grouped = {};
-            
-            props.forEach(prop => {
-                const key = `${prop.prop_type}_${prop.outcome_point}`;
-                if (!grouped[key]) {
-                    grouped[key] = {
-                        prop_type: prop.prop_type,
-                        line: prop.outcome_point,
-                        bookmakers: []
-                    };
-                }
-                grouped[key].bookmakers.push(prop);
-            });
-            
-            let html = '';
-            Object.values(grouped).forEach(group => {
-                const overOdds = group.bookmakers.filter(b => b.outcome_name === 'Over');
-                const underOdds = group.bookmakers.filter(b => b.outcome_name === 'Under');
-                
-                if (overOdds.length > 0 && underOdds.length > 0) {
-                    const avgOver = (overOdds.reduce((sum, b) => sum + (b.outcome_price || 0), 0) / overOdds.length).toFixed(2);
-                    const avgUnder = (underOdds.reduce((sum, b) => sum + (b.outcome_price || 0), 0) / underOdds.length).toFixed(2);
-                    
-                    html += `
-                        <div class="bg-gray-50 rounded p-3">
-                            <div class="text-xs font-semibold text-gray-600 mb-1">${formatPropType(group.prop_type)}</div>
-                            <div class="text-2xl font-bold text-gray-900 mb-1">${group.line}</div>
-                            <div class="flex justify-between text-xs">
-                                <span class="text-green-600">O: ${avgOver}</span>
-                                <span class="text-red-600">U: ${avgUnder}</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">${overOdds.length} books</div>
-                        </div>
-                    `;
-                }
-            });
-            
-            return html || '<div class="text-gray-500 text-sm">No props available</div>';
-        }
-
-        // Format Prop Type
         function formatPropType(propType) {
             const typeMap = {
                 'player_points': 'Points',
@@ -724,21 +719,6 @@
                 'player_blocks': 'Blocks'
             };
             return typeMap[propType] || propType.replace('player_', '').replace('_', ' ');
-        }
-
-        // Search Function
-        async function performSearch(query) {
-            try {
-                const response = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Display search results (you can enhance this with a dropdown)
-                    console.log('Search results:', data.results);
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-            }
         }
     </script>
 </body>
