@@ -1,725 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sports Analytics Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
-        
-        * {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-            min-height: 100vh;
-        }
-        
-        /* Glassmorphism effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-        
-        .glass-white {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Gradient header */
-        .gradient-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .gradient-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
-        
-        @keyframes shimmer {
-            0%, 100% { transform: translateX(-100%); }
-            50% { transform: translateX(100%); }
-        }
-        
-        /* Card hover effects */
-        .card-modern {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .card-modern::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-        
-        .card-modern:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3), 0 0 0 1px rgba(102, 126, 234, 0.5);
-        }
-        
-        .card-modern:hover::before {
-            opacity: 1;
-        }
-        
-        /* Animated gradient button */
-        .btn-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-        
-        .btn-gradient::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn-gradient:hover::before {
-            left: 100%;
-        }
-        
-        .btn-gradient:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        /* Smooth fade in */
-        .fade-in {
-            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        @keyframes fadeInUp {
-            from { 
-                opacity: 0; 
-                transform: translateY(30px);
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0);
-            }
-        }
-        
-        /* Stagger animation */
-        .stagger-item {
-            opacity: 0;
-            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-        
-        .stagger-item:nth-child(1) { animation-delay: 0.1s; }
-        .stagger-item:nth-child(2) { animation-delay: 0.2s; }
-        .stagger-item:nth-child(3) { animation-delay: 0.3s; }
-        .stagger-item:nth-child(4) { animation-delay: 0.4s; }
-        .stagger-item:nth-child(5) { animation-delay: 0.5s; }
-        
-        /* Prop badge with glow */
-        .prop-badge {
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .prop-badge:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
-        /* Loading spinner */
-        .loading-spinner {
-            border: 3px solid rgba(102, 126, 234, 0.1);
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 5px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #764ba2, #f093fb);
-        }
-        
-        /* Search input glow */
-        .search-glow {
-            transition: all 0.3s;
-        }
-        
-        .search-glow:focus {
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
-            border-color: #667eea;
-        }
-        
-        /* Sport selector */
-        .sport-pill {
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .sport-pill:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-        
-        .sport-pill.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
-        }
-        
-        /* Odds display */
-        .odds-positive {
-            color: #10b981;
-            text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
-        }
-        
-        .odds-negative {
-            color: #ef4444;
-            text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
-        }
-        
-        /* Team vs animation */
-        .vs-badge {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            animation: pulse-glow 2s infinite;
-        }
-        
-        @keyframes pulse-glow {
-            0%, 100% { 
-                box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
-            }
-            50% { 
-                box-shadow: 0 0 30px rgba(118, 75, 162, 0.6);
-            }
-        }
-        
-        /* Modal backdrop */
-        .modal-backdrop {
-            backdrop-filter: blur(10px);
-            background: rgba(0, 0, 0, 0.7);
-        }
-        
-        /* Stat counter animation */
-        .stat-number {
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        /* No data state */
-        .empty-state {
-            opacity: 0.6;
-            transition: opacity 0.3s;
-        }
-        
-        .empty-state:hover {
-            opacity: 1;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sports Analytics Dashboard</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* =========================
+   GLOBAL
+========================= */
+* {
+  font-family: 'Outfit', system-ui, sans-serif;
+}
+
+.numeric {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  background: radial-gradient(
+    1200px circle at 10% 10%,
+    #1f2937 0%,
+    #0b0f19 45%
+  );
+  color: #e5e7eb;
+  min-height: 100vh;
+}
+
+/* =========================
+   SURFACES
+========================= */
+.glass {
+  background: rgba(17, 24, 39, 0.78);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* =========================
+   HEADER
+========================= */
+.gradient-header {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+/* =========================
+   BUTTONS
+========================= */
+.btn-gradient {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(99,102,241,0.5);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   CARDS
+========================= */
+.card-modern {
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.6);
+  border-color: rgba(99,102,241,0.6);
+}
+
+.card-modern::after {
+  content:'';
+  position:absolute;
+  left:0;
+  top:20%;
+  width:3px;
+  height:60%;
+  background: linear-gradient(#6366f1, #8b5cf6);
+  opacity:0;
+  transition: opacity 0.25s ease;
+}
+
+.card-modern:hover::after {
+  opacity:1;
+}
+
+/* =========================
+   LABELS
+========================= */
+.label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+/* =========================
+   INPUTS
+========================= */
+.search-glow:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.5);
+}
+
+/* =========================
+   PILLS
+========================= */
+.sport-pill {
+  transition: all 0.2s ease;
+}
+
+.sport-pill.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  box-shadow: 0 6px 16px rgba(99,102,241,0.4);
+}
+</style>
 </head>
+
 <body>
-    <!-- Header -->
-    <header class="gradient-header text-white shadow-2xl sticky top-0 z-40">
-        <div class="container mx-auto px-6 py-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4 relative z-10">
-                    <div class="bg-white/20 backdrop-blur-sm p-3 rounded-2xl">
-                        <i class="fas fa-chart-line text-3xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-black tracking-tight">Sports Analytics</h1>
-                        <p class="text-sm font-light opacity-90">Real-time Player Props & Betting Intelligence</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4 relative z-10">
-                    <div class="relative">
-                        <input 
-                            type="text" 
-                            id="searchInput"
-                            placeholder="Search players, teams..." 
-                            class="search-glow pl-12 pr-6 py-3 rounded-2xl bg-white/20 backdrop-blur-sm text-white placeholder-white/70 focus:outline-none focus:bg-white/30 w-72 transition-all"
-                        >
-                        <i class="fas fa-search absolute left-4 top-4 text-white/70"></i>
-                    </div>
-                    <button id="refreshBtn" class="btn-gradient px-6 py-3 rounded-2xl font-semibold transition-all">
-                        <i class="fas fa-sync-alt mr-2"></i>Refresh
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <div class="container mx-auto px-6 py-8">
-        <!-- Filters -->
-        <div class="glass-white rounded-3xl p-6 mb-8 fade-in shadow-2xl">
-            <div class="flex flex-wrap items-center justify-between gap-6">
-                <!-- Sport Selection -->
-                <div class="flex items-center space-x-3">
-                    <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Sport</label>
-                    <div class="flex space-x-2">
-                        <button class="sport-pill active px-6 py-2 rounded-full font-semibold text-sm" data-sport="basketball_nba">
-                            <i class="fas fa-basketball-ball mr-2"></i>NBA
-                        </button>
-                        <button class="sport-pill glass px-6 py-2 rounded-full font-semibold text-sm" data-sport="americanfootball_nfl">
-                            <i class="fas fa-football-ball mr-2"></i>NFL
-                        </button>
-                        <button class="sport-pill glass px-6 py-2 rounded-full font-semibold text-sm" data-sport="baseball_mlb">
-                            <i class="fas fa-baseball-ball mr-2"></i>MLB
-                        </button>
-                        <button class="sport-pill glass px-6 py-2 rounded-full font-semibold text-sm" data-sport="icehockey_nhl">
-                            <i class="fas fa-hockey-puck mr-2"></i>NHL
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Date Filters -->
-                <div class="flex items-center space-x-3">
-                    <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Date</label>
-                    <div class="flex space-x-2">
-                        <button class="date-filter-btn glass px-5 py-2 rounded-full font-semibold text-sm transition-all" data-filter="today">Today</button>
-                        <button class="date-filter-btn glass px-5 py-2 rounded-full font-semibold text-sm transition-all" data-filter="tomorrow">Tomorrow</button>
-                        <button class="date-filter-btn bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2 rounded-full font-semibold text-sm shadow-lg" data-filter="week">This Week</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- =========================
+     HEADER
+========================= -->
+<header class="gradient-header sticky top-0 z-40 shadow-2xl">
+  <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
 
-        <!-- Games Grid -->
-        <div id="gamesContainer" class="space-y-6">
-            <!-- Loading state -->
-            <div id="loadingState" class="text-center py-20">
-                <div class="loading-spinner mx-auto mb-6"></div>
-                <p class="text-white text-lg font-semibold">Loading games...</p>
-            </div>
-        </div>
-
-        <!-- No Data State -->
-        <div id="noDataState" class="hidden text-center py-20 empty-state">
-            <div class="glass-white rounded-3xl p-12 inline-block">
-                <i class="fas fa-inbox text-8xl text-gray-300 mb-6"></i>
-                <h3 class="text-2xl font-bold text-gray-700 mb-3">No Games Found</h3>
-                <p class="text-gray-500 text-lg" id="noDataMessage">Try selecting a different sport or date range</p>
-            </div>
-        </div>
+    <div class="flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-white/20">
+        <i class="fas fa-chart-line text-2xl"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-extrabold tracking-tight">
+          Sports Analytics
+        </h1>
+        <p class="text-sm opacity-80">
+          Player Props Intelligence
+        </p>
+      </div>
     </div>
 
-    <!-- Game Modal -->
-    <div id="gameModal" class="hidden fixed inset-0 modal-backdrop z-50 overflow-y-auto">
-        <div class="min-h-screen" style="background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);">
-            <header class="gradient-header text-white shadow-2xl sticky top-0 z-10">
-                <div class="container mx-auto px-6 py-5">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-4">
-                            <button id="closeModal" class="hover:bg-white/20 rounded-full p-3 transition-all">
-                                <i class="fas fa-arrow-left text-xl"></i>
-                            </button>
-                            <div>
-                                <h2 id="modalTitle" class="text-2xl font-black">Game Details</h2>
-                                <p id="modalSubtitle" class="text-sm font-light opacity-90"></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-            
-            <div class="container mx-auto px-6 py-8">
-                <div id="modalContent"></div>
-            </div>
-        </div>
+    <div class="flex items-center gap-4">
+      <input
+        class="search-glow bg-white/10 px-4 py-2 rounded-xl w-64 text-sm"
+        placeholder="Search players, teams"
+      />
+      <button class="btn-gradient px-5 py-2 rounded-xl font-semibold">
+        <i class="fas fa-sync-alt mr-2"></i>
+        Refresh
+      </button>
     </div>
 
-    <!-- Player Modal -->
-    <div id="playerModal" class="hidden fixed inset-0 modal-backdrop z-50 overflow-y-auto">
-        <div class="min-h-screen" style="background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);">
-            <header class="gradient-header text-white shadow-2xl sticky top-0 z-10">
-                <div class="container mx-auto px-6 py-5">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-4">
-                            <button id="backToGameModal" class="hover:bg-white/20 rounded-full p-3 transition-all">
-                                <i class="fas fa-arrow-left text-xl"></i>
-                            </button>
-                            <div>
-                                <h2 id="playerModalTitle" class="text-2xl font-black">Player Details</h2>
-                                <p id="playerModalSubtitle" class="text-sm font-light opacity-90"></p>
-                            </div>
-                        </div>
-                        <button id="closePlayerModal" class="hover:bg-white/20 rounded-full p-3 transition-all">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-            </header>
-            
-            <div class="container mx-auto px-6 py-8">
-                <div id="playerModalContent"></div>
-            </div>
-        </div>
+  </div>
+</header>
+
+<!-- =========================
+     MAIN
+========================= -->
+<main class="max-w-7xl mx-auto px-6 py-8 space-y-6">
+
+  <!-- FILTER BAR -->
+  <section class="glass rounded-2xl p-6 flex justify-between items-center">
+
+    <div class="flex gap-2">
+      <button class="sport-pill active px-4 py-2 rounded-full text-sm font-semibold">NBA</button>
+      <button class="sport-pill glass px-4 py-2 rounded-full text-sm font-semibold">NFL</button>
+      <button class="sport-pill glass px-4 py-2 rounded-full text-sm font-semibold">MLB</button>
+      <button class="sport-pill glass px-4 py-2 rounded-full text-sm font-semibold">NHL</button>
     </div>
 
-    <script>
-        let API_BASE = window.location.origin || 'http://localhost:5000';
-        let currentSport = 'basketball_nba';
-        let currentDateFilter = 'week';
+    <div class="flex gap-2">
+      <button class="glass px-4 py-2 rounded-full text-sm">Today</button>
+      <button class="glass px-4 py-2 rounded-full text-sm">Tomorrow</button>
+      <button class="btn-gradient px-4 py-2 rounded-full text-sm">Week</button>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadGames();
-            setupEventListeners();
-        });
+  </section>
 
-        function setupEventListeners() {
-            // Sport pills
-            document.querySelectorAll('.sport-pill').forEach(pill => {
-                pill.addEventListener('click', (e) => {
-                    document.querySelectorAll('.sport-pill').forEach(p => {
-                        p.classList.remove('active', 'bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white');
-                        p.classList.add('glass');
-                    });
-                    e.target.classList.remove('glass');
-                    e.target.classList.add('active');
-                    currentSport = e.target.dataset.sport;
-                    loadGames();
-                });
-            });
+  <!-- GAME CARDS -->
+  <section class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-            // Date filters
-            document.querySelectorAll('.date-filter-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.date-filter-btn').forEach(b => {
-                        b.classList.remove('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white', 'shadow-lg');
-                        b.classList.add('glass');
-                    });
-                    e.target.classList.remove('glass');
-                    e.target.classList.add('bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white', 'shadow-lg');
-                    currentDateFilter = e.target.dataset.filter;
-                    loadGames();
-                });
-            });
+    <div class="glass card-modern rounded-2xl p-6">
+      <span class="label">Matchup</span>
+      <h2 class="text-xl font-bold mt-1">
+        Lakers @ Warriors
+      </h2>
 
-            document.getElementById('refreshBtn')?.addEventListener('click', loadGames);
-            document.getElementById('closeModal')?.addEventListener('click', () => {
-                document.getElementById('gameModal').classList.add('hidden');
-            });
-            document.getElementById('closePlayerModal')?.addEventListener('click', () => {
-                document.getElementById('playerModal').classList.add('hidden');
-                document.getElementById('gameModal').classList.add('hidden');
-            });
-            document.getElementById('backToGameModal')?.addEventListener('click', () => {
-                document.getElementById('playerModal').classList.add('hidden');
-                document.getElementById('gameModal').classList.remove('hidden');
-            });
-        }
+      <div class="mt-4 flex justify-between text-sm">
+        <div>
+          <span class="label">Players</span>
+          <p class="numeric font-semibold">28</p>
+        </div>
+        <div>
+          <span class="label">Books</span>
+          <p class="numeric font-semibold">9</p>
+        </div>
+        <div>
+          <span class="label">Time</span>
+          <p class="numeric font-semibold">7:30 PM</p>
+        </div>
+      </div>
+    </div>
 
-        async function loadGames() {
-            const container = document.getElementById('gamesContainer');
-            const loadingState = document.getElementById('loadingState');
-            const noDataState = document.getElementById('noDataState');
-            
-            loadingState.classList.remove('hidden');
-            noDataState.classList.add('hidden');
-            container.innerHTML = '';
+  </section>
 
-            try {
-                const response = await fetch(`${API_BASE}/api/games?sport=${currentSport}&date=${currentDateFilter}`);
-                const data = await response.json();
+</main>
 
-                loadingState.classList.add('hidden');
-
-                if (data.success && data.games.length > 0) {
-                    displayGames(data.games);
-                } else {
-                    const noDataMsg = document.getElementById('noDataMessage');
-                    if (currentDateFilter === 'today') {
-                        noDataMsg.textContent = 'No games scheduled for today. Try "Tomorrow" or "This Week"';
-                    } else if (currentDateFilter === 'tomorrow') {
-                        noDataMsg.textContent = 'No games scheduled for tomorrow. Try "This Week"';
-                    } else {
-                        noDataMsg.textContent = 'No upcoming games found. Run the scraper to fetch new data.';
-                    }
-                    noDataState.classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error('Error loading games:', error);
-                loadingState.classList.add('hidden');
-                noDataState.classList.remove('hidden');
-            }
-        }
-
-        function displayGames(games) {
-            const container = document.getElementById('gamesContainer');
-            
-            games.forEach((game, index) => {
-                const gameCard = document.createElement('div');
-                gameCard.className = `glass-white rounded-3xl p-8 card-modern cursor-pointer stagger-item shadow-2xl`;
-                gameCard.onclick = () => openGameModal(game.event_id);
-                
-                gameCard.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-4 mb-4">
-                                <div class="text-4xl font-black text-gray-800">${game.away_team}</div>
-                                <div class="vs-badge text-white px-4 py-2 rounded-full text-sm font-bold">VS</div>
-                                <div class="text-4xl font-black text-gray-800">${game.home_team}</div>
-                            </div>
-                            <div class="flex items-center space-x-6 text-sm text-gray-600 font-medium">
-                                <span class="flex items-center">
-                                    <i class="far fa-clock mr-2 text-purple-600"></i>
-                                    ${game.commence_time_formatted}
-                                </span>
-                                <span class="flex items-center">
-                                    <i class="fas fa-users mr-2 text-purple-600"></i>
-                                    <span class="stat-number">${game.player_count}</span> Players
-                                </span>
-                                <span class="flex items-center">
-                                    <i class="fas fa-store mr-2 text-purple-600"></i>
-                                    <span class="stat-number">${game.bookmaker_count}</span> Bookmakers
-                                </span>
-                            </div>
-                        </div>
-                        <div>
-                            <button class="btn-gradient px-8 py-4 rounded-2xl font-bold text-white text-lg shadow-xl">
-                                View Props
-                                <i class="fas fa-arrow-right ml-3"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                container.appendChild(gameCard);
-            });
-        }
-
-        async function openGameModal(eventId) {
-            const modal = document.getElementById('gameModal');
-            const modalContent = document.getElementById('modalContent');
-            
-            modal.classList.remove('hidden');
-            modalContent.innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto"></div></div>';
-            
-            try {
-                const response = await fetch(`${API_BASE}/api/game/${eventId}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayGameDetails(data);
-                }
-            } catch (error) {
-                console.error('Error loading game details:', error);
-                modalContent.innerHTML = '<div class="text-center py-12 text-red-500"><i class="fas fa-exclamation-circle text-4xl mb-3"></i><p class="text-lg">Error loading game details</p></div>';
-            }
-        }
-
-        function displayGameDetails(data) {
-            const modalTitle = document.getElementById('modalTitle');
-            const modalSubtitle = document.getElementById('modalSubtitle');
-            const modalContent = document.getElementById('modalContent');
-            
-            modalTitle.textContent = `${data.game.away_team} @ ${data.game.home_team}`;
-            modalSubtitle.textContent = `${data.player_count} Players • ${data.bookmakers.length} Bookmakers • ${data.total_props} Props`;
-            
-            window.currentGameData = data;
-            
-            let playersHTML = '<div class="space-y-5">';
-            
-            data.players.forEach(player => {
-                const propTypes = [...new Set(player.props.map(p => p.prop_type))];
-                
-                playersHTML += `
-                    <div class="glass-white rounded-3xl p-6 hover:shadow-2xl transition-all cursor-pointer border-2 border-transparent hover:border-purple-400" 
-                         onclick="showPlayerPage('${player.name.replace(/'/g, "\\'")}', '${data.game.event_id}')">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-2xl font-bold text-gray-800">
-                                <i class="fas fa-user-circle text-purple-600 mr-3"></i>${player.name}
-                            </h3>
-                            <div class="flex flex-wrap gap-2 items-center">
-                                ${propTypes.map(type => `
-                                    <span class="prop-badge bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                                        ${formatPropType(type)}
-                                    </span>
-                                `).join('')}
-                                <i class="fas fa-arrow-right text-purple-600 text-xl ml-2"></i>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            playersHTML += '</div>';
-            modalContent.innerHTML = playersHTML;
-        }
-
-        function showPlayerPage(playerName, eventId) {
-            const gameData = window.currentGameData;
-            const player = gameData.players.find(p => p.name === playerName);
-            
-            if (!player) return;
-            
-            document.getElementById('gameModal').classList.add('hidden');
-            
-            const playerModal = document.getElementById('playerModal');
-            const playerModalTitle = document.getElementById('playerModalTitle');
-            const playerModalSubtitle = document.getElementById('playerModalSubtitle');
-            const playerModalContent = document.getElementById('playerModalContent');
-            
-            playerModalTitle.textContent = playerName;
-            playerModalSubtitle.textContent = `${gameData.game.away_team} @ ${gameData.game.home_team}`;
-            
-            const propTypes = [...new Set(player.props.map(p => p.prop_type))];
-            
-            let html = '<div class="space-y-6">';
-            
-            propTypes.forEach(propType => {
-                const propsOfType = player.props.filter(p => p.prop_type === propType);
-                
-                const lineGroups = {};
-                propsOfType.forEach(prop => {
-                    const line = prop.outcome_point;
-                    if (!lineGroups[line]) {
-                        lineGroups[line] = { over: [], under: [] };
-                    }
-                    if (prop.outcome_name === 'Over') {
-                        lineGroups[line].over.push(prop);
-                    } else if (prop.outcome_name === 'Under') {
-                        lineGroups[line].under.push(prop);
-                    }
-                });
-                
-                html += `
-                    <div class="glass-white rounded-3xl p-8 shadow-2xl">
-                        <h3 class="text-3xl font-black text-gray-800 mb-6 flex items-center">
-                            <i class="fas fa-chart-line text-purple-600 mr-3"></i>
-                            ${formatPropType(propType)}
-                        </h3>
-                `;
-                
-                Object.keys(lineGroups).sort((a, b) => parseFloat(a) - parseFloat(b)).forEach(line => {
-                    const { over, under } = lineGroups[line];
-                    
-                    html += `
-                        <div class="mb-6 glass rounded-2xl p-6">
-                            <div class="text-center mb-5">
-                                <span class="text-sm text-gray-400 uppercase tracking-wide font-bold">Line</span>
-                                <div class="text-6xl font-black stat-number mt-2">${line}</div>
-                            </div>
-                            
-                            <div class="grid md:grid-cols-2 gap-6">
-                                <div>
-                                    <h4 class="text-sm font-bold text-green-600 mb-3 uppercase tracking-wide flex items-center">
-                                        <i class="fas fa-arrow-up mr-2"></i>Over ${line}
-                                    </h4>
-                                    <div class="space-y-3">
-                    `;
-                    
-                    over.forEach(prop => {
-                        html += `
-                            <div class="glass-white p-4 rounded-xl border-2 border-transparent hover:border-green-400 transition-all">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-gray-800">${prop.bookmaker_title}</span>
-                                    <span class="text-2xl font-black ${prop.outcome_price > 0 ? 'odds-positive' : 'text-gray-800'}">
-                                        ${prop.outcome_price > 0 ? '+' : ''}${prop.outcome_price}
-                                    </span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += `
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <h4 class="text-sm font-bold text-red-600 mb-3 uppercase tracking-wide flex items-center">
-                                        <i class="fas fa-arrow-down mr-2"></i>Under ${line}
-                                    </h4>
-                                    <div class="space-y-3">
-                    `;
-                    
-                    under.forEach(prop => {
-                        html += `
-                            <div class="glass-white p-4 rounded-xl border-2 border-transparent hover:border-red-400 transition-all">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-gray-800">${prop.bookmaker_title}</span>
-                                    <span class="text-2xl font-black ${prop.outcome_price > 0 ? 'odds-positive' : 'text-gray-800'}">
-                                        ${prop.outcome_price > 0 ? '+' : ''}${prop.outcome_price}
-                                    </span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += `
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += '</div>';
-            });
-            
-            html += '</div>';
-            
-            playerModalContent.innerHTML = html;
-            playerModal.classList.remove('hidden');
-        }
-
-        function formatPropType(propType) {
-            const typeMap = {
-                'player_points': 'Points',
-                'player_assists': 'Assists',
-                'player_rebounds': 'Rebounds',
-                'player_threes': '3-Pointers',
-                'player_steals': 'Steals',
-                'player_blocks': 'Blocks'
-            };
-            return typeMap[propType] || propType.replace('player_', '').replace('_', ' ');
-        }
-    </script>
 </body>
 </html>
